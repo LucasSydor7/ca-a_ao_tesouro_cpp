@@ -5,6 +5,8 @@
 
 using namespace std;
 
+const int max_linhas = 20;
+const int max_colunas = 20;
 //a base para o cadastro dos players
 struct player {
     string nome;
@@ -21,20 +23,52 @@ struct evento {
 
 //cadastrar os players
 void cadastrarJogadores(player jogadores[], int qnt_players) {
-    for(int i = 0; i < qnt_players; i++){
+    for (int i = 0; i < qnt_players; i++) {
         cout << "Digite o nome do jogador " << i + 1 << ": ";
         cin >> jogadores[i].nome;
-        cout << "Digite o simbolo do jogador " << i + 1 << ": ";
+        cout << "Digite o símbolo do jogador " << i + 1 << ": ";
         cin >> jogadores[i].simbolo;
-        jogadores[i].pontuacao = 0; //define a pontuacao inicial em zero
+        jogadores[i].pontuacao = 0; // Pontuação inicial zerada
     }
 }
-//criacao da matriz
-void preencher_matriz(int matriz[6][6]){
-    for(int i = 0; i < 6; i++){
-        for(int j = 0; j < 6; j++){
-           matriz[i][j] = 1 * 6 + j + 1;
+
+// Função para criar a matriz do jogo
+void preencher_matriz(int matriz[max_linhas][max_colunas]) {
+    for (int i = 0; i < max_linhas; i++) {
+        for (int j = 0; j < max_colunas; j++) {
+            matriz[i][j] = 0; // Inicializar a matriz com zeros
         }
+    }
+}
+
+void escolher_dificuldade(int &linhas, int &colunas) {
+    int dificuldade;
+    cout << "Escolha a dificuldade:\n";
+    cout << "1 - Fácil (6x6)\n";
+    cout << "2 - Personalizado\n";
+    cout << "Escolha a Dificuldade: ";
+    cin >> dificuldade;
+    switch (dificuldade) {
+        case 1:
+            linhas = 6;
+            colunas = 6;
+            break;
+        case 2:
+            do {
+                cout << "Informe o numero de linhas(maximo " << max_linhas << ")" << endl;
+                cin >> linhas;
+            } while (linhas <= 0 || linhas > max_linhas);
+
+            do {
+                cout << "Digite o numero de colunas (maximo " << max_colunas << ")" << endl;
+                cin >> colunas;
+            } while (colunas <= 0 || colunas > max_colunas);
+            break;
+        default:
+            cout << "Dificuldade invalida! (utilizando a dificuldade normal)" << endl;
+            linhas = 6;
+            colunas = 6;
+            break;
     }
 }
 
@@ -57,7 +91,7 @@ void distribuir_items(char campo[6][6], int nDiamantes, int nBonus, int nArmadil
 
 
 //mostrar a matriz na tela (teste)
-void imprimir_matriz(int matriz[6][6], int linhas, int colunas) {
+void imprimir_matriz(int matriz[max_linhas][max_colunas], int linhas, int colunas) {
     cout << "" << endl;
     for (int j = 0; j < colunas; j++) {
         cout << char('A' + j) << " "; //tentando automatizar as colunas com identificacao (tipo primeira coluna como A e etc...)
@@ -73,31 +107,12 @@ void imprimir_matriz(int matriz[6][6], int linhas, int colunas) {
 }
 
 int main(){
-    int matriz [6][6];
+    int matriz [max_linhas][max_colunas];
     int qnt_players;
-    int dificuldade,linhas,colunas;
+    int linhas,colunas;
 
-    cout << "escolha a dificuldade (1 - Facil, 2 - Normal, 3 - Dificil): " << endl;
-    cin >> dificuldade;
-//define a dificuldade, aumenta ou diminui o tamanho da matriz (os valores sao padronizados entre 6x6,7x7 e 8x8)
-    switch(dificuldade){
-        case 1:
-            linhas = 6;
-            colunas = 6;
-            break;
-        case 2:
-            linhas = 7;
-            colunas = 7;
-            break;
-        case 3:
-            linhas = 8;
-            colunas = 8;
-            break;
-        default:
-            cout << "Dificuldade invalida! (Usando a Dificuldade Facil Como Padrao)" << endl;
-            linhas = 6;
-            colunas = 6;
-    }
+    escolher_dificuldade(linhas, colunas);
+
     //escolhe a quantidade de players, n pode ser jogador unico ou mais q quatro(no momento)
     do{
         cout << "Digite a quantidade de players(2-4)" << endl;
