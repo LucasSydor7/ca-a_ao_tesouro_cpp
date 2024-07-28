@@ -44,7 +44,7 @@ void preencher_matriz(int matriz[max_linhas][max_colunas]) {
 void escolher_dificuldade(int &linhas, int &colunas) {
     int dificuldade;
     cout << "Escolha a dificuldade:\n";
-    cout << "1 - Fácil (6x6)\n";
+    cout << "1 - Normal (6x6)\n";
     cout << "2 - Personalizado\n";
     cout << "Escolha a Dificuldade: ";
     cin >> dificuldade;
@@ -73,7 +73,7 @@ void escolher_dificuldade(int &linhas, int &colunas) {
 }
 
 //distribuir os itens na matriz
-void distribuir_items(char campo[6][6], int nDiamantes, int nBonus, int nArmadilhas) {
+void distribuir_items(char campo[max_linhas][max_colunas], int nDiamantes, int nBonus, int nArmadilhas) {
     srand(time(0));//randomiza os numeros
 
     int itensColocados = 0;
@@ -92,18 +92,22 @@ void distribuir_items(char campo[6][6], int nDiamantes, int nBonus, int nArmadil
 
 //mostrar a matriz na tela (teste)
 void imprimir_matriz(int matriz[max_linhas][max_colunas], int linhas, int colunas) {
-    cout << "" << endl;
+    cout << "  "; // Espaço para alinhar com os números das linhas
     for (int j = 0; j < colunas; j++) {
-        cout << char('A' + j) << " "; //tentando automatizar as colunas com identificacao (tipo primeira coluna como A e etc...)
+        cout << char('A' + j) << " "; // Imprime a letra correspondente à coluna
     }
     cout << endl;
     for (int i = 0; i < linhas; i++) {
-        cout << i + 1 << " "; // mostra o numero das linhas como 1, 2, 3, etc...
+        cout << i + 1 << " "; // Mostra o número das linhas
         for (int j = 0; j < colunas; j++) {
             cout << matriz[i][j] << " ";
         }
         cout << endl;
     }
+}
+
+int converterColuna(char colunaLetra){
+    return colunaLetra - 'A' + 1;
 }
 
 int main(){
@@ -126,14 +130,13 @@ int main(){
     imprimir_matriz(matriz,linhas,colunas);
 
     int linha,colunaNumerica;
-
     char colunaLetra;
     cout << "Escolha uma posicao (ex: 2 B): " << endl;
     cin >> linha >> colunaLetra;
-    colunaNumerica = colunaLetra - 'A';
+    colunaNumerica = converterColuna(colunaLetra);
 
-    if (linha >= 1 && linha <= linhas && colunaNumerica >= 0 && colunaNumerica < colunas) {
-        matriz[linha - 1][colunaNumerica] = '+';
+    if (linha >= 1 && linha <= linhas && colunaNumerica >= 1 && colunaNumerica < colunas) {
+        matriz[linha - 1][colunaNumerica - 1] = '+';
         imprimir_matriz(matriz,linhas,colunas);
 
     } else {
