@@ -1,46 +1,48 @@
-#include <iostream> 
+#include <iostream>
 #include <string>
 #include <ctime>
 #include <cstdlib>
+#include <limits>
+#include <iomanip>
 
 using namespace std;
 
 const int max_linhas = 20;
 const int max_colunas = 20;
-//a base para o cadastro dos players
+
+// Estrutura para representar um jogador
 struct player {
     string nome;
     char simbolo;
     int pontuacao;
+    bool bonus_diamante_duplo;
+    int jogadas_extras;
 };
 
-struct evento {
-    char tipo; //vai utilizar o B para definir os Bonus e A para armadilhas,
-    int pontos;
-    int linha;
-    int coluna;
-};
-
-//cadastrar os players
+// Função para cadastrar os jogadores
 void cadastrarJogadores(player jogadores[], int qnt_players) {
     for (int i = 0; i < qnt_players; i++) {
         cout << "Digite o nome do jogador " << i + 1 << ": ";
         cin >> jogadores[i].nome;
         cout << "Digite o símbolo do jogador " << i + 1 << ": ";
         cin >> jogadores[i].simbolo;
-        jogadores[i].pontuacao = 0; // Pontuação inicial zerada
+        jogadores[i].pontuacao = 0;
+        jogadores[i].bonus_diamante_duplo = false;
+        jogadores[i].jogadas_extras = 0;
+        cout << "Jogador " << jogadores[i].nome << " escolheu o símbolo: " << jogadores[i].simbolo << endl;
     }
 }
 
 // Função para criar a matriz do jogo
-void preencher_matriz(int matriz[max_linhas][max_colunas]) {
-    for (int i = 0; i < max_linhas; i++) {
-        for (int j = 0; j < max_colunas; j++) {
-            matriz[i][j] = 0; // Inicializar a matriz com zeros
+void preencher_matriz(char matriz[max_linhas][max_colunas], int linhas, int colunas) {
+    for (int i = 0; i < linhas; i++) {
+        for (int j = 0; j < colunas; j++) {
+            matriz[i][j] = '0';
         }
     }
 }
 
+// Função para escolher a dificuldade do jogo
 void escolher_dificuldade(int &linhas, int &colunas) {
     int dificuldade;
     cout << "Escolha a dificuldade:\n";
@@ -72,75 +74,261 @@ void escolher_dificuldade(int &linhas, int &colunas) {
     }
 }
 
-//distribuir os itens na matriz
-void distribuir_items(char campo[max_linhas][max_colunas], int nDiamantes, int nBonus, int nArmadilhas) {
-    srand(time(0));//randomiza os numeros
+// Função para gerar um número aleatório entre min e max
+int gerar_numero_aleatorio(int min, int max) {
+    return rand() % (max - min + 1) + min;
+}
 
-    int itensColocados = 0;
+// Função para distribuir os itens (diamantes, bônus e armadilhas) no tabuleiro
+void distribuir_itens(char matriz[][max_colunas], int linhas, int colunas, int nDiamantes, int nBonus, int nArmadilhas) {
+    srand(time(0));
 
-    while(itensColocados < nDiamantes + nBonus + nArmadilhas){
-        int linha = rand() % 6;
-        int coluna = rand() % 6;
+    // Distribui os diamantes
+    while (nDiamantes > 0) {
+        int linha = gerar_numero_aleatorio(0, linhas - 1);
+        int coluna = gerar_numero_aleatorio(0, colunas - 1);
+        if (matriz[linha][coluna] == '0') {
+            matriz[linha][coluna] = 'D';
+            nDiamantes--;
+        }
+    }
 
-        if(campo[linha][coluna] == 0){
-            campo[linha][coluna] = 1;
-            itensColocados++;
+    // Distribui os bônus
+    while (nBonus > 0) {
+        int linha = gerar_numero_aleatorio(0, linhas - 1);
+        int coluna = gerar_numero_aleatorio(0, colunas - 1);
+        if (matriz[linha][coluna] == '0') {
+            matriz[linha][coluna] = 'B';
+            nBonus--;
+        }
+    }
+
+    // Distribui as armadilhas
+    while (nArmadilhas > 0) {
+        int linha = gerar_numero_aleatorio(0, linhas - 1);
+        int coluna = gerar_numero_aleatorio(0, colunas - 1);
+        if (matriz[linha][coluna] == '0') {
+            matriz[linha][coluna] = 'A';
+            nArmadilhas--;
         }
     }
 }
 
-
-//mostrar a matriz na tela (teste)
-void imprimir_matriz(int matriz[max_linhas][max_colunas], int linhas, int colunas) {
-    cout << "  "; // Espaço para alinhar com os números das linhas
-    for (int j = 0; j < colunas; j++) {
-        cout << char('A' + j) << " "; // Imprime a letra correspondente à coluna
+// Função para imprimir a matriz do jogo, revelando os itens que foram descobertos
+void imprimir_matriz(char matriz[][max_colunas], int linhas, int colunas, bool itensRevelados[max_linhas][max_colunas]) {
+    // Cabeçalho da coluna
+    cout << "  ";
+    for (char c = 'A'; c <= 'A' + colunas - 1; c++) {
+        cout << "\033[34m" << setw(2) << c << "\033[0m";
     }
     cout << endl;
+
+    // Linhas da matriz
     for (int i = 0; i < linhas; i++) {
-        cout << i + 1 << " "; // Mostra o número das linhas
+        cout << "\033[34m" << setw(2) << i + 1 << "\033[0m" << " "; 
         for (int j = 0; j < colunas; j++) {
-            cout << matriz[i][j] << " ";
+            if (itensRevelados[i][j]) {
+                cout << "\033[37m" << matriz[i][j] << "\033[0m" << " "; 
+            } else {
+                cout << "\033[37m" << "0" << "\033[0m" << " "; 
+            }
         }
         cout << endl;
     }
 }
 
+// Função para converter uma letra de coluna para um número
 int converterColuna(char colunaLetra){
     return colunaLetra - 'A' + 1;
 }
 
-int main(){
-    int matriz [max_linhas][max_colunas];
-    int qnt_players;
-    int linhas,colunas;
+// Função para verificar se uma posição é válida
+bool posicaoValida(int linha, int coluna, int linhas, int colunas) {
+    return linha >= 1 && linha <= linhas && coluna >= 1 && coluna <= colunas;
+}
 
+// Função para verificar se um jogador ganhou
+bool verificaVitoria(char tabuleiro[max_linhas][max_colunas], char simbolo, int linhas, int colunas) {
+    // Verifica linhas
+    for (int i = 0; i < linhas; i++) {
+        if (tabuleiro[i][0] == simbolo && tabuleiro[i][1] == simbolo && tabuleiro[i][2] == simbolo) {
+            return true;
+        }
+    }
+
+    // Verifica colunas
+    for (int j = 0; j < colunas; j++) {
+        if (tabuleiro[0][j] == simbolo && tabuleiro[1][j] == simbolo && tabuleiro[2][j] == simbolo) {
+            return true;
+        }
+    }
+
+    // Verifica diagonais
+    if (tabuleiro[0][0] == simbolo && tabuleiro[1][1] == simbolo && tabuleiro[2][2] == simbolo) {
+        return true;
+    }
+    if (tabuleiro[0][2] == simbolo && tabuleiro[1][1] == simbolo && tabuleiro[2][0] == simbolo) {
+        return true;
+    }
+
+    return false; 
+}
+
+// Função para verificar se o jogo terminou em empate
+bool verificaEmpate(char tabuleiro[max_linhas][max_colunas], int linhas, int colunas) {
+    for (int i = 0; i < linhas; i++) {
+        for (int j = 0; j < colunas; j++) {
+            if (tabuleiro[i][j] == '0') {
+                return false; 
+            }
+        }
+    }
+    return true; 
+}
+
+int main() {
+    char matriz[max_linhas][max_colunas];
+    int qnt_players;
+    int linhas, colunas;
+    int nDiamantes = 15;
+    int nArmadilhas = 8;
+    int nBonus = 5;
+
+    // Pergunta ao usuário a quantidade de jogadores
+    cout << "Digite a quantidade de jogadores (entre 2 e 4): ";
+    while (!(cin >> qnt_players) || qnt_players < 2 || qnt_players > 4) { 
+        cout << "Entrada inválida. Digite um número entre 2 e 4: ";
+        cin.clear(); 
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+    }
+
+    // Cria um array de jogadores com a quantidade especificada
+    player jogadores[qnt_players];
+    cadastrarJogadores(jogadores, qnt_players);
+
+    // Define a dificuldade do jogo
     escolher_dificuldade(linhas, colunas);
 
-    //escolhe a quantidade de players, n pode ser jogador unico ou mais q quatro(no momento)
-    do{
-        cout << "Digite a quantidade de players(2-4)" << endl;
-        cin >> qnt_players; 
-    } while(qnt_players < 2 || qnt_players > 4);
+    // Preenche a matriz do jogo com "0"s
+    preencher_matriz(matriz, linhas, colunas);
 
-    //chama as funcoes 
-    player jogadores[qnt_players];
-    cadastrarJogadores(jogadores, qnt_players); 
-    preencher_matriz(matriz);
-    imprimir_matriz(matriz,linhas,colunas);
+    // Distribui os itens no tabuleiro
+    distribuir_itens(matriz, linhas, colunas, nDiamantes, nArmadilhas, nBonus);
 
-    int linha,colunaNumerica;
-    char colunaLetra;
-    cout << "Escolha uma posicao (ex: 2 B): " << endl;
-    cin >> linha >> colunaLetra;
-    colunaNumerica = converterColuna(colunaLetra);
+    // Matriz para controlar quais itens foram revelados
+    bool itensRevelados[max_linhas][max_colunas];
+    for (int i = 0; i < linhas; i++) {
+        for (int j = 0; j < colunas; j++) {
+            itensRevelados[i][j] = false; // Inicializa como falso (oculto)
+        }
+    }
 
-    if (linha >= 1 && linha <= linhas && colunaNumerica >= 1 && colunaNumerica < colunas) {
-        matriz[linha - 1][colunaNumerica - 1] = '+';
-        imprimir_matriz(matriz,linhas,colunas);
+    // Imprime a matriz do jogo (inicialmente com "0"s)
+    imprimir_matriz(matriz, linhas, colunas, itensRevelados);
 
-    } else {
-        cout << "Posicao invalida!" << endl;
+    // Variáveis para controlar o jogo
+    int jogadorAtual = 0;
+    bool jogoTerminou = false;
+
+    // Loop principal do jogo
+    while (!jogoTerminou) { 
+        // Limpar a tela (opcional)
+        // ..
+
+        cout << "Jogador " << jogadores[jogadorAtual].nome << " (" << jogadores[jogadorAtual].simbolo << "), sua vez!" << endl;
+
+        // Loop para garantir que o jogador escolha uma posição válida
+        while (!jogoTerminou) { 
+            // Obter a posição escolhida pelo jogador
+            char colunaLetra;
+            int linha;
+            cout << "Digite a coluna (A-" << char('A' + colunas - 1) << "): ";
+            cin >> colunaLetra;
+            cout << "Digite a linha (1-" << linhas << "): ";
+            cin >> linha;
+
+            // Converter a coluna para um número
+            int colunaNumerica = converterColuna(colunaLetra); 
+
+            // Verificar se a posição é válida
+            if (posicaoValida(linha, colunaNumerica, linhas, colunas)) {
+                // Revelar o item na posição escolhida
+                if (matriz[linha - 1][colunaNumerica - 1] == 'D') {
+                    cout << "Você encontrou um diamante!" << endl;
+                    int pontosDiamante = gerar_numero_aleatorio(2, 10);
+                    if (jogadores[jogadorAtual].bonus_diamante_duplo) {
+                        pontosDiamante *= 2;
+                        jogadores[jogadorAtual].bonus_diamante_duplo = false; 
+                    }
+                    jogadores[jogadorAtual].pontuacao += pontosDiamante; 
+                    cout << "Você ganhou " << pontosDiamante << " pontos!" << endl;
+                } else if (matriz[linha - 1][colunaNumerica - 1] == 'B') {
+                    cout << "Você encontrou um bônus!" << endl;
+                    int tipoBonus = gerar_numero_aleatorio(1, 2);
+                    if (tipoBonus == 1) {
+                        cout << "Você ganhou uma jogada extra!" << endl;
+                        jogadores[jogadorAtual].jogadas_extras++;
+                        // O jogador atual continua jogando
+                    } else {
+                        cout << "Seu próximo diamante valerá o dobro de pontos!" << endl;
+                        jogadores[jogadorAtual].bonus_diamante_duplo = true;
+                    }
+                } else if (matriz[linha - 1][colunaNumerica - 1] == 'A') {
+                    cout << "Você encontrou uma armadilha!" << endl;
+                    int pontosArmadilha = gerar_numero_aleatorio(5, 10); 
+                    for (int i = 0; i < qnt_players; i++) {
+                        if (i != jogadorAtual) {
+                            jogadores[i].pontuacao -= pontosArmadilha; 
+                            if (jogadores[i].pontuacao < 0) {
+                                jogadores[i].pontuacao = 0; 
+                            }
+                            cout << "Jogador " << jogadores[i].nome << " perdeu " << pontosArmadilha << " pontos." << endl;
+                        }
+                    }
+                    jogadores[jogadorAtual].pontuacao += pontosArmadilha; 
+                } else { 
+                    cout << "Esta posição está vazia." << endl;
+
+                    // Atualiza a matriz com o símbolo do jogador atual
+                    matriz[linha - 1][colunaNumerica - 1] = jogadores[jogadorAtual].simbolo; 
+                }
+
+                // Marca a posição como revelada
+                itensRevelados[linha - 1][colunaNumerica - 1] = true;
+
+                // Imprime a matriz do jogo (com itens revelados)
+                imprimir_matriz(matriz, linhas, colunas, itensRevelados); 
+
+                // Verifica se o jogador atual ganhou
+                if (verificaVitoria(matriz, jogadores[jogadorAtual].simbolo, linhas, colunas)) {
+                    cout << "Jogador " << jogadores[jogadorAtual].nome << " venceu!" << endl;
+                    jogoTerminou = true;
+                } else if (verificaEmpate(matriz, linhas, colunas)) {
+                    cout << "Empate!" << endl;
+                    jogoTerminou = true;
+                }
+
+            } else {
+                cout << "Posicao invalida. Tente novamente." << endl;
+            }
+        }
+
+        // Passa a vez para o próximo jogador, considerando as jogadas extras
+        if (jogadores[jogadorAtual].jogadas_extras > 0) {
+            jogadores[jogadorAtual].jogadas_extras--;
+            // Continua a vez do jogador atual
+        } else {
+            jogadorAtual = (jogadorAtual + 1) % qnt_players; 
+        }
+
+        // Imprime a matriz do jogo (com itens revelados)
+        imprimir_matriz(matriz, linhas, colunas, itensRevelados); 
+    }
+
+    // Exibe a pontuação final de cada jogador
+    cout << "\n--- Pontuação Final ---" << endl;
+    for (int i = 0; i < qnt_players; i++) {
+        cout << "Jogador " << jogadores[i].nome << ": " << jogadores[i].pontuacao << " pontos" << endl;
     }
 
     return 0;
