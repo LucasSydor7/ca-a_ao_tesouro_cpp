@@ -259,20 +259,36 @@ int main() {
 
         // Loop para garantir que o jogador escolha uma posição válida
         while (!jogoTerminou && !jogadaValida) { 
-            // Verifica se o jogador digitou "status"
-            cout << "Digite 'status' para ver sua pontuação ou digite a coluna (A-" << char('A' + colunas - 1) << "): ";
+            // Verifica se o jogador digitou "status" ou "desistir"
+            cout << "Digite 'status' para ver sua pontuação, 'desistir' para desistir ou digite a coluna (A-" << char('A' + colunas - 1) << "): ";
             string entrada;
             cin >> entrada;
 
             if (entrada == "status") {
                 cout << "Status do jogador " << jogadores[jogadorAtual].nome << ": " << jogadores[jogadorAtual].pontuacao << " pontos" << endl;
                 continue; // Volta para o início do loop 
+            } else if (entrada == "desistir") {
+                // Encontra o jogador com a maior pontuação (excluindo o que desistiu)
+                int jogadorVencedor = 0;
+                int maiorPontuacao = 0;
+                for (int i = 0; i < qnt_players; i++) {
+                    if (i != jogadorAtual && jogadores[i].pontuacao > maiorPontuacao) {
+                        jogadorVencedor = i;
+                        maiorPontuacao = jogadores[i].pontuacao;
+                    }
+                }
+
+                // Declara o jogador com a maior pontuacao como vencedor
+                cout << "Jogador " << jogadores[jogadorAtual].nome << " desistiu!" << endl;
+                cout << "Jogador " << jogadores[jogadorVencedor].nome << " venceu com " << maiorPontuacao << " pontos!" << endl;
+                jogoTerminou = true;
+                break; // Sai do loop principal
             }
 
             // Obter a posição escolhida pelo jogador
             char colunaLetra = entrada[0]; // Pega o primeiro caractere da entrada
 
-            // Lê a linha se o jogador não digitou "status"
+            // Lê a linha se o jogador não digitou "status" ou "desistir"
             int linha;
             cout << "Digite a linha (1-" << linhas << "): ";
             cin >> linha;
@@ -364,4 +380,4 @@ int main() {
     }
 
     return 0;
-}
+}a
