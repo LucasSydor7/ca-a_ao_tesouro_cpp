@@ -114,6 +114,16 @@ void distribuir_itens(char matriz[][max_colunas], int linhas, int colunas, int n
     }
 }
 
+// Função para obter o código de cor ANSI
+string getCorANSI(char item) {
+    switch (item) {
+        case 'B': return "\033[32m"; // Verde
+        case 'A': return "\033[33m"; // Amarelo
+        case 'D': return "\033[34m"; // Azul
+        default: return "\033[0m"; // Reset
+    }
+}
+
 // Função para imprimir a matriz do jogo, revelando os itens que foram descobertos
 void imprimir_matriz(char matriz[][max_colunas], int linhas, int colunas, bool itensRevelados[max_linhas][max_colunas]) {
     // Cabeçalho da coluna
@@ -128,7 +138,7 @@ void imprimir_matriz(char matriz[][max_colunas], int linhas, int colunas, bool i
         cout << "\033[34m" << setw(2) << i + 1 << "\033[0m" << " "; 
         for (int j = 0; j < colunas; j++) {
             if (itensRevelados[i][j]) {
-                cout << "\033[37m" << matriz[i][j] << "\033[0m" << " "; 
+                cout << getCorANSI(matriz[i][j]) << matriz[i][j] << "\033[0m" << " "; 
             } else {
                 cout << "\033[37m" << "0" << "\033[0m" << " "; 
             }
