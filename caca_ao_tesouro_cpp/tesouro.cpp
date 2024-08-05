@@ -237,13 +237,33 @@ int main() {
 
         cout << "Jogador " << jogadores[jogadorAtual].nome << " (" << jogadores[jogadorAtual].simbolo << "), sua vez!" << endl;
 
+        // Verifica se algum jogador atingiu 100 pontos
+        if (jogadores[jogadorAtual].pontuacao >= 100) {
+            cout << "Jogador " << jogadores[jogadorAtual].nome << " venceu com 100 pontos!" << endl;
+            jogoTerminou = true;
+            break; 
+        }
+
+        // Variável para indicar se o jogador fez uma jogada válida
+        bool jogadaValida = false; 
+
         // Loop para garantir que o jogador escolha uma posição válida
-        while (!jogoTerminou) { 
+        while (!jogoTerminou && !jogadaValida) { 
+            // Verifica se o jogador digitou "status"
+            cout << "Digite 'status' para ver sua pontuação ou digite a coluna (A-" << char('A' + colunas - 1) << "): ";
+            string entrada;
+            cin >> entrada;
+
+            if (entrada == "status") {
+                cout << "Status do jogador " << jogadores[jogadorAtual].nome << ": " << jogadores[jogadorAtual].pontuacao << " pontos" << endl;
+                continue; // Volta para o início do loop 
+            }
+
             // Obter a posição escolhida pelo jogador
-            char colunaLetra;
+            char colunaLetra = entrada[0]; // Pega o primeiro caractere da entrada
+
+            // Lê a linha se o jogador não digitou "status"
             int linha;
-            cout << "Digite a coluna (A-" << char('A' + colunas - 1) << "): ";
-            cin >> colunaLetra;
             cout << "Digite a linha (1-" << linhas << "): ";
             cin >> linha;
 
@@ -308,6 +328,8 @@ int main() {
                     jogoTerminou = true;
                 }
 
+                // A jogada foi válida, então atualiza a flag
+                jogadaValida = true; 
             } else {
                 cout << "Posicao invalida. Tente novamente." << endl;
             }
